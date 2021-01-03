@@ -1,8 +1,10 @@
+import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:provider/provider.dart';
-import 'dart:io' show Platform;
+import 'package:modal_progress_hud/modal_progress_hud.dart';
+
 import '../providers/auth.dart';
 import '../validation/validation.dart';
 
@@ -30,6 +32,8 @@ class _AuthFormState extends State<AuthForm> with Validation {
     final width = MediaQuery.of(context).size.width;
 
     const radius = 15.0;
+
+    bool _busy = false;
 
     auth.addListener(() {
       if (auth.isAuthenticated) Navigator.of(context).pop();
@@ -90,6 +94,10 @@ class _AuthFormState extends State<AuthForm> with Validation {
           }
 
           try {
+            setState(() {
+              _busy = true;
+            });
+
             if (_registrationMode) {
               await auth.register(
                   emailController.text, passwordController.text);
@@ -116,6 +124,10 @@ class _AuthFormState extends State<AuthForm> with Validation {
               ),
             );
           }
+
+          setState(() {
+            _busy = false;
+          });
         },
         child: Text(_registrationMode ? 'Sign up' : 'Login',
             textAlign: TextAlign.center,
@@ -155,36 +167,39 @@ class _AuthFormState extends State<AuthForm> with Validation {
       return w;
     }
 
-    return Container(
-      width: width - 800,
-      //height: height - (_registrationMode ? 300 : 350),
-      child: Center(
-        child: Container(
-          color: Colors.white,
-          child: Padding(
-            padding: const EdgeInsets.all(36.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  CircleAvatar(
-                    radius: 75.0,
-                    child: Image.asset(
-                      "assets/images/logo-yellow-round.png",
-                      fit: BoxFit.contain,
+    return ModalProgressHUD(
+      inAsyncCall: _busy,
+      child: Container(
+        width: width - 800,
+        //height: height - (_registrationMode ? 300 : 350),
+        child: Center(
+          child: Container(
+            color: Colors.white,
+            child: Padding(
+              padding: const EdgeInsets.all(36.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    CircleAvatar(
+                      radius: 75.0,
+                      child: Image.asset(
+                        "assets/images/logo-yellow-round.png",
+                        fit: BoxFit.contain,
+                      ),
                     ),
-                  ),
-                  ...fields(),
-                  SizedBox(height: 35.0),
-                  actionButton,
-                  SizedBox(height: 35.0),
-                  switchButton,
-                  SizedBox(
-                    height: 15.0,
-                  ),
-                ],
+                    ...fields(),
+                    SizedBox(height: 35.0),
+                    actionButton,
+                    SizedBox(height: 35.0),
+                    switchButton,
+                    SizedBox(
+                      height: 15.0,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
